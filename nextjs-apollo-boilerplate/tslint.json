@@ -1,0 +1,18 @@
+{
+  "defaultSeverity": "error",
+  "extends": ["tslint:recommended"],
+  "jsRules": {},
+  "rules": {
+    "arrow-parens": false,
+    "interface-name": false,
+    "one-line": false,
+    "semicolon": [true, "always", "ignore-bound-class-methods"],
+    "trailing-comma": false,
+    "no-console": false,
+    "no-var-requires": false
+  },
+  "rulesDirectory": [],
+  "linterOptions": {
+    "exclude": ["../node_modules"]
+  }
+}
