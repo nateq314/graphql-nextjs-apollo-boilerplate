@@ -126,7 +126,6 @@ function Login({ client }: LoginProps) {
                       const { success } = response.data.login as LoginResponse;
                       if (success) {
                         setUser(user);
-                        console.log("Login success, cookie is now set.");
                       }
                     }
                   }

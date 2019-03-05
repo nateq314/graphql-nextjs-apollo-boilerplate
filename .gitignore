@@ -29,3 +29,6 @@
 
 # VS Code project-specific settings
 .vscode
+
+# credentials
+credentials.json
