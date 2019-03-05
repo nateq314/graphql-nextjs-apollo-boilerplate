@@ -17,6 +17,7 @@ export default (App: any) => {
     static displayName = "withApollo(App)";
 
     static async getInitialProps(ctx: NextAppContext) {
+      console.log("<App /> getInitialProps()");
       const { Component, router } = ctx;
       let appProps = {};
       if (App.getInitialProps) {
@@ -29,6 +30,7 @@ export default (App: any) => {
       // If server-side, not in browser
       if (typeof window === "undefined") {
         try {
+          console.log("about to call getDataFromTree()");
           // Run all GraphQL queries
           await getDataFromTree(
             <App
@@ -38,6 +40,7 @@ export default (App: any) => {
               apolloClient={apollo}
             />
           );
+          console.log("finished calling it");
         } catch (error) {
           // Prevent Apollo Client GraphQL errors from crashing SSR.
           // Handle them in components via the data.error prop:

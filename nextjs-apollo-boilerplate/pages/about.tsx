@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import Link from "next/link";
 import styled from "styled-components";
 
-import { useCorrectURL } from "../other/effects";
 import Button from "../components/Button";
 import GlobalStyles from "../components/GlobalStyles";
 
@@ -15,7 +14,6 @@ const StyledAbout = styled.div`
 `;
 
 export default function About() {
-  useCorrectURL();
   const [loading, setLoading] = useState(false);
 
   return (

@@ -1,5 +1,5 @@
 import { ApolloClient, NormalizedCacheObject } from "apollo-boost";
-import React, { useRef, useState, useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import styled from "styled-components";
 import firebase from "../other/firebase";
 import { Mutation, Query, withApollo } from "react-apollo";
@@ -74,74 +74,76 @@ function Login({ client }: LoginProps) {
 
   return (
     <Mutation mutation={LOGIN}>
-      {(login) => (
-        <StyledLogin>
-          <GlobalStyles />
-          <h1>Login</h1>
-          {user ? (
-            <Mutation mutation={LOGOUT}>
-              {(logout) => (
-                <>
-                  <h2>Welcome, {user.email}</h2>
-                  <h3>
-                    <Query query={HELLO}>
-                      {({ loading, error, data }) => {
-                        if (loading) return "Loading...";
-                        if (error) return `Error! ${error.message}`;
-                        return data.hello;
+      {(login) => {
+        return (
+          <StyledLogin>
+            <GlobalStyles />
+            <h1>Login</h1>
+            {user ? (
+              <Mutation mutation={LOGOUT}>
+                {(logout) => (
+                  <>
+                    <h2>Welcome, {user.email}</h2>
+                    <h3>
+                      <Query query={HELLO}>
+                        {({ loading, error, data }) => {
+                          if (loading) return "Loading...";
+                          if (error) return `Error! ${error.message}`;
+                          return data.hello;
+                        }}
+                      </Query>
+                    </h3>
+                    <button
+                      onClick={async () => {
+                        setUser(null);
+                        await firebase.auth().signOut();
+                        await logout();
                       }}
-                    </Query>
-                  </h3>
-                  <button
-                    onClick={async () => {
-                      setUser(null);
-                      await firebase.auth().signOut();
-                      await logout();
-                    }}
-                  >
-                    Log Out
-                  </button>
-                </>
-              )}
-            </Mutation>
-          ) : (
-            <form
-              onSubmit={async (e) => {
-                e.preventDefault();
-                const {
-                  user
-                } = await firebase
-                  .auth()
-                  .signInWithEmailAndPassword(
-                    (email.current as HTMLInputElement).value,
-                    (password.current as HTMLInputElement).value
-                  );
-                if (user) {
-                  const idToken = await user.getIdToken();
-                  const response = await login({
-                    variables: { idToken }
-                  });
-                  if (response) {
-                    const { success } = response.data.login as LoginResponse;
-                    if (success) {
-                      setUser(user);
-                      console.log("Login success, cookie is now set.");
+                    >
+                      Log Out
+                    </button>
+                  </>
+                )}
+              </Mutation>
+            ) : (
+              <form
+                onSubmit={async (e) => {
+                  e.preventDefault();
+                  const {
+                    user
+                  } = await firebase
+                    .auth()
+                    .signInWithEmailAndPassword(
+                      (email.current as HTMLInputElement).value,
+                      (password.current as HTMLInputElement).value
+                    );
+                  if (user) {
+                    const idToken = await user.getIdToken();
+                    const response = await login({
+                      variables: { idToken }
+                    });
+                    if (response) {
+                      const { success } = response.data.login as LoginResponse;
+                      if (success) {
+                        setUser(user);
+                        console.log("Login success, cookie is now set.");
+                      }
                     }
                   }
-                }
-              }}
-            >
-              <div>
-                <input id="email" ref={email} />
-              </div>
-              <div>
-                <input type="password" id="password" ref={password} />
-              </div>
-              <button type="submit">Log In</button>
-            </form>
-          )}
-        </StyledLogin>
-      )}
+                }}
+              >
+                <div>
+                  <input id="email" ref={email} />
+                </div>
+                <div>
+                  <input type="password" id="password" ref={password} />
+                </div>
+                <button type="submit">Log In</button>
+              </form>
+            )}
+          </StyledLogin>
+        );
+      }}
     </Mutation>
   );
 }

@@ -1,15 +1,20 @@
-import firebase from "firebase";
+import firebase from "firebase/app";
+import "firebase/auth";
 
 let app: firebase.app.App;
 try {
   app = firebase.app();
-} catch {
-  app = firebase.initializeApp({
-    apiKey: "AIzaSyCsMTAxjQ15ylh3ORj8SF_k658fqDO0q3g",
-    authDomain: "focus-champion-231019.firebaseapp.com",
-    databaseURL: "https://<DATABASE_NAME>.firebaseio.com",
-    storageBucket: "<BUCKET>.appspot.com"
-  });
+} catch (error) {
+  console.error(error);
+  try {
+    app = firebase.initializeApp({
+      apiKey: "AIzaSyCsMTAxjQ15ylh3ORj8SF_k658fqDO0q3g",
+      authDomain: "focus-champion-231019.firebaseapp.com"
+    });
+  } catch (error2) {
+    console.error("error:", error2);
+    throw error2;
+  }
 }
 
 export default app;
