@@ -5,7 +5,6 @@ let app: firebase.app.App;
 try {
   app = firebase.app();
 } catch (error) {
-  console.error(error);
   try {
     app = firebase.initializeApp({
       apiKey: "AIzaSyCsMTAxjQ15ylh3ORj8SF_k658fqDO0q3g",

@@ -1,12 +1,13 @@
-import { verifyUserSessionToken } from "./firebase";
+import { verifyUserSessionToken, verifyIdToken } from "./firebase";
 import * as express from "express";
 
 export async function getUser(req: express.Request) {
-  console.log("req.cookies:", JSON.stringify(req.cookies));
   const sessionCookie = req.cookies.session || "";
   if (sessionCookie) {
-    console.log("sessionCookie:", sessionCookie);
     return verifyUserSessionToken(sessionCookie);
+  } else {
+    const idToken = req.get("idToken");
+    if (idToken) return verifyIdToken(idToken);
   }
   return null;
 }

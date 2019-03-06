@@ -6,15 +6,16 @@ import { ApolloClient, NormalizedCacheObject } from "apollo-boost";
 
 interface MyAppProps extends AppProps {
   apolloClient: ApolloClient<NormalizedCacheObject>;
+  user?: firebase.User;
 }
 
 class MyApp extends App<MyAppProps> {
   render() {
-    const { Component, pageProps, apolloClient } = this.props;
+    const { Component, pageProps, apolloClient, user } = this.props;
     return (
       <Container>
         <ApolloProvider client={apolloClient}>
-          <Component {...pageProps} />
+          <Component {...pageProps} user={user} />
         </ApolloProvider>
       </Container>
     );

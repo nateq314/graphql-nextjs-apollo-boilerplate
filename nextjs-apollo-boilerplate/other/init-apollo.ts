@@ -17,13 +17,16 @@ if (!isBrowser) {
   (global as any).fetch = fetch;
 }
 
-const httpLink = new HttpLink({
-  uri:
-    "https://us-central1-focus-champion-231019.cloudfunctions.net/api/graphql",
-  credentials: "include"
-});
+export const LINK_URI =
+  "https://us-central1-focus-champion-231019.cloudfunctions.net/api/graphql";
 
-function create(initialState: any) {
+function create(initialState: any, linkOptions: HttpLink.Options) {
+  const httpLink = new HttpLink({
+    uri: LINK_URI,
+    credentials: "include",
+    ...linkOptions
+  });
+
   return new ApolloClient({
     connectToDevTools: isBrowser,
     ssrMode: !isBrowser,
@@ -32,16 +35,19 @@ function create(initialState: any) {
   });
 }
 
-export default function initApollo(initialState?: any) {
+export default function initApollo(
+  initialState?: any,
+  linkOptions: HttpLink.Options = {}
+) {
   // Make sure to create a new client for every server-side request so that data
   // isn't shared between connections (which would be bad)
   if (!isBrowser) {
-    return create(initialState);
+    return create(initialState, linkOptions);
   }
 
   // Reuse client on the client-side
   if (!apolloClient) {
-    apolloClient = create(initialState);
+    apolloClient = create(initialState, linkOptions);
   }
   return apolloClient;
 }

@@ -25,7 +25,7 @@ function configureServer() {
   const app = express();
   app.use(
     cors({
-      origin: "https://nateq314.now.sh",
+      origin: ["https://nateq314.now.sh", "http://localhost:3000"],
       credentials: true
     })
   );
@@ -83,9 +83,9 @@ function configureServer() {
         if (args.idToken) {
           const decodedIdToken = await verifyIdToken(args.idToken);
           const { uid } = decodedIdToken;
-          // Let's see what the hell is really in this thing anyways
-          console.log("decodedIdToken:", JSON.stringify(decodedIdToken));
           if (!uid) throw new AuthError({ message: "User is not registered" });
+
+          const user = await getUserRecord(uid);
           const [sessionCookie, expiresIn] = await createUserSessionToken(
             args,
             decodedIdToken
@@ -98,7 +98,8 @@ function configureServer() {
           };
           ctx.res.cookie("session", sessionCookie, options);
           return {
-            success: true
+            success: true,
+            user
           };
         } else {
           const sessionCookie = ctx.req.cookies.session || "";
