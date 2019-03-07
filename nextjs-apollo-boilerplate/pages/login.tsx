@@ -6,8 +6,6 @@ import { Mutation, Query } from "react-apollo";
 import gql from "graphql-tag";
 import * as Cookies from "cookies-js";
 
-import GlobalStyles from "../components/GlobalStyles";
-
 interface LoginProps {
   client: ApolloClient<NormalizedCacheObject>;
   user?: firebase.User;
@@ -58,7 +56,6 @@ function Login({ user }: LoginProps) {
       {(login) => {
         return (
           <StyledLogin>
-            <GlobalStyles />
             <h1>Login</h1>
             {user ? (
               <Mutation mutation={gql(LOGOUT)}>

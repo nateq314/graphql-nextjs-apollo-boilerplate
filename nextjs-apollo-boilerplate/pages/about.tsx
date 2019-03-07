@@ -3,7 +3,6 @@ import Link from "next/link";
 import styled from "styled-components";
 
 import Button from "../components/Button";
-import GlobalStyles from "../components/GlobalStyles";
 
 const StyledAbout = styled.div`
   padding-top: 30px;
@@ -18,7 +17,6 @@ export default function About() {
 
   return (
     <StyledAbout className="example">
-      <GlobalStyles />
       <h1>About Us</h1>
       <h2>We're a great team of really talented folks.</h2>
       <Link href="/">

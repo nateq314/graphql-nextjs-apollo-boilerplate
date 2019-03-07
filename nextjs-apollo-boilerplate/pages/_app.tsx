@@ -3,6 +3,7 @@ import App, { Container, AppProps } from "next/app";
 import { ApolloProvider } from "react-apollo";
 import withApolloClient from "../other/with-apollo-client";
 import { ApolloClient, NormalizedCacheObject } from "apollo-boost";
+import GlobalStyles from "../components/GlobalStyles";
 
 interface MyAppProps extends AppProps {
   apolloClient: ApolloClient<NormalizedCacheObject>;
@@ -14,6 +15,7 @@ class MyApp extends App<MyAppProps> {
     const { Component, pageProps, apolloClient, user } = this.props;
     return (
       <Container>
+        <GlobalStyles />
         <ApolloProvider client={apolloClient}>
           <Component {...pageProps} user={user} />
         </ApolloProvider>
