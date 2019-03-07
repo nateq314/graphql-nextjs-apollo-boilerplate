@@ -1,13 +1,11 @@
-import { ApolloClient, NormalizedCacheObject } from "apollo-boost";
 import React, { useRef } from "react";
 import styled from "styled-components";
 import firebase from "../other/firebase";
-import { Mutation, Query } from "react-apollo";
+import { Mutation } from "react-apollo";
 import gql from "graphql-tag";
 import * as Cookies from "cookies-js";
 
 interface LoginProps {
-  client: ApolloClient<NormalizedCacheObject>;
   user?: firebase.User;
 }
 
@@ -25,25 +23,10 @@ export const LOGIN = `
       success
       message
       user {
-        email
         uid
+        email
       }
     }
-  }
-`;
-
-const LOGOUT = `
-  mutation {
-    logout {
-      success
-      message
-    }
-  }
-`;
-
-const HELLO = `
-  {
-    hello
   }
 `;
 
@@ -56,34 +39,7 @@ function Login({ user }: LoginProps) {
       {(login) => {
         return (
           <StyledLogin>
-            <h1>Login</h1>
-            {user ? (
-              <Mutation mutation={gql(LOGOUT)}>
-                {(logout) => (
-                  <>
-                    <h2>Welcome, {user.email}</h2>
-                    <h3>
-                      <Query query={gql(HELLO)}>
-                        {({ loading, error, data }) => {
-                          if (loading) return "Loading...";
-                          if (error) return `Error! ${error.message}`;
-                          return data.hello;
-                        }}
-                      </Query>
-                    </h3>
-                    <button
-                      onClick={async () => {
-                        await firebase.auth().signOut();
-                        await logout();
-                        location.assign(`${location.href}?logout=true`);
-                      }}
-                    >
-                      Log Out
-                    </button>
-                  </>
-                )}
-              </Mutation>
-            ) : (
+            {user ? null : (
               <form
                 onSubmit={async (e) => {
                   e.preventDefault();

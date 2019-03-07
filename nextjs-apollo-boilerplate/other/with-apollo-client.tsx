@@ -7,7 +7,7 @@ import { getDataFromTree } from "react-apollo";
 import { ApolloClient, NormalizedCacheObject } from "apollo-boost";
 import { parseCookies, setCookie, destroyCookie } from "nookies";
 import * as api from "./api";
-import { LOGIN } from "../pages/login";
+import { LOGIN } from "../components/Login";
 import * as http from "http";
 
 interface ApolloProps {
@@ -15,62 +15,55 @@ interface ApolloProps {
 }
 
 async function autoLogin(ctx: NextContext) {
-  if (ctx.req) {
-    // SERVER SIDE
-    // check for the temporary cookie. If present, extract idToken, delete cookie,
-    // and set a new httpOnly one.
-    const { idToken, tempToken } = parseCookies(ctx);
-    // no need to delete the cookie since it only had a lifespan of < 1 min
-    if (tempToken) {
-      // User just logged in via email/password and page reloaded. Temporary token received.
-      if (tempToken === "undefined") {
-        destroyCookie(ctx, "tempToken", {});
-        return {};
-      }
-      // fetch user data from API using the idToken (`login` mutation)
-      const response = await api.post({
-        query: LOGIN.replace(/\s+/, " "),
-        variables: { idToken: tempToken }
-      });
-      if (response.errors) {
-        console.error(response.errors);
-        return {};
-      }
-      if (!idToken) {
-        // Set an httpOnly cookie. From now on (at least while the cookie is valid) this will
-        // be sent by the client on all requests for pages. Using this cookie, we can perform
-        // auto-login per below.
-        setCookie(ctx, "idToken", tempToken, {
-          maxAge: 5 * 24 * 60 * 60,
-          httpOnly: true,
-          // TODO: set 'secure' to true
-          secure: false
-        });
-      }
-      // return user data as props
-      const { success, user } = response.data.login;
-      if (success) return { user, idToken: tempToken };
-    } else if (idToken) {
-      // User is re-visiting the site. Get the user info. No need to set cookie as it already exists.
-      // fetch user data from API using the idToken (`login` mutation)
-      // This also has the effect of setting the httpOnly cookie between API <-> SSR
-      const response = await api.post({
-        query: LOGIN.replace(/\s+/, " "),
-        variables: { idToken }
-      });
-      if (response.errors) {
-        console.error(response.errors);
-        destroyCookie(ctx, "idToken", {});
-        return {};
-      }
-      // return user data as props
-      const { success, user } = response.data.login;
-      if (success) return { user, idToken };
+  // check for the temporary cookie. If present, extract idToken, delete cookie,
+  // and set a new httpOnly one.
+  const { idToken, tempToken } = parseCookies(ctx);
+  // no need to delete the cookie since it only had a lifespan of < 1 min
+  if (tempToken) {
+    // User just logged in via email/password and page reloaded. Temporary token received.
+    if (tempToken === "undefined") {
+      destroyCookie(ctx, "tempToken", {});
+      return {};
     }
-  } else {
-    // CLIENT SIDE
     // fetch user data from API using the idToken (`login` mutation)
+    const response = await api.post({
+      query: LOGIN.replace(/\s+/, " "),
+      variables: { idToken: tempToken }
+    });
+    if (response.errors) {
+      console.error(response.errors);
+      return {};
+    }
+    if (!idToken) {
+      // Set an httpOnly cookie. From now on (at least while the cookie is valid) this will
+      // be sent by the client on all requests for pages. Using this cookie, we can perform
+      // auto-login per below.
+      setCookie(ctx, "idToken", tempToken, {
+        maxAge: 5 * 24 * 60 * 60,
+        httpOnly: true,
+        // TODO: set 'secure' to true
+        secure: false
+      });
+    }
     // return user data as props
+    const { success, user } = response.data.login;
+    if (success) return { user, idToken: tempToken };
+  } else if (idToken) {
+    // User is re-visiting the site. Get the user info. No need to set cookie as it already exists.
+    // fetch user data from API using the idToken (`login` mutation)
+    // This also has the effect of setting the httpOnly cookie between API <-> SSR
+    const response = await api.post({
+      query: LOGIN.replace(/\s+/, " "),
+      variables: { idToken }
+    });
+    if (response.errors) {
+      console.error(response.errors);
+      destroyCookie(ctx, "idToken", {});
+      return {};
+    }
+    // return user data as props
+    const { success, user } = response.data.login;
+    if (success) return { user, idToken };
   }
   return {};
 }
@@ -108,12 +101,11 @@ export default (App: any) => {
           });
           response.end();
         } else {
-          // If server-side, not in browser
           const autoLoginResponse = await autoLogin(ctx);
           user = autoLoginResponse.user;
           const { idToken } = autoLoginResponse;
           // for the purposes of running getDataFromTree, send token as a header
-          apollo = initApollo(undefined, { headers: { idToken } });
+          apollo = initApollo({ currentUser: user }, { headers: { idToken } });
           try {
             // Run all GraphQL queries
             await getDataFromTree(
@@ -122,7 +114,6 @@ export default (App: any) => {
                 Component={Component}
                 router={router}
                 apolloClient={apollo}
-                user={user}
               />
             );
           } catch (error) {
@@ -145,8 +136,7 @@ export default (App: any) => {
 
       return {
         ...appProps,
-        apolloState,
-        user
+        apolloState
       };
     }
 

@@ -1,9 +1,9 @@
-import { ApolloServer, gql } from "apollo-server-express";
+import { ApolloServer, gql, ApolloError } from "apollo-server-express";
 import * as cors from "cors";
 import * as express from "express";
 import * as cookieParser from "cookie-parser";
-import * as firebaseAdmin from "firebase-admin";
-import { getUser, AuthError } from "./utils";
+import * as fbAdmin from "firebase-admin";
+import { getUser } from "./utils";
 import {
   getUserRecord,
   verifyIdToken,
@@ -18,7 +18,7 @@ interface ILogin {
 export interface Context {
   req: express.Request;
   res: express.Response;
-  user: firebaseAdmin.auth.DecodedIdToken | null;
+  user: fbAdmin.auth.DecodedIdToken | null;
 }
 
 function configureServer() {
@@ -36,7 +36,6 @@ function configureServer() {
     type List {
       name: String!
       order: Int!
-      uid: ID!
     }
 
     type Mutation {
@@ -51,8 +50,8 @@ function configureServer() {
     }
 
     type Query {
-      "A simple type for getting started!"
-      hello: String
+      currentUser: User
+      lists: [List!]!
     }
 
     type User {
@@ -72,18 +71,43 @@ function configureServer() {
   // Very simple resolver that returns "world" for the hello query
   const resolvers = {
     Query: {
-      // hello: () => "world"
-      hello(parent: any, args: any, ctx: Context, info: any) {
-        if (!ctx.user) ctx.res.status(401).send("UNAUTHORIZED REQUEST");
-        return "world";
+      async currentUser(parent: any, args: any, ctx: Context, info: any) {
+        console.log("resolvers.Query.currentUser()");
+        return ctx.user;
+      },
+      async lists(parent: any, args: any, ctx: Context, info: any) {
+        console.log("resolvers.Query.lists()");
+        authorize(ctx);
+        const { uid } = ctx.user as fbAdmin.auth.DecodedIdToken;
+        try {
+          console.log(`about to query for documents with uid == ${uid}`);
+          const querySnapshot = await fbAdmin
+            .firestore()
+            .collection("lists")
+            .where("uid", "==", uid)
+            .get();
+          const data = querySnapshot.docs.map((doc) => doc.data());
+          console.log("Retrieved lists:", data);
+          return data;
+        } catch (error) {
+          console.error("Error retrieving lists:", error);
+          throw new ApolloError(`Error getting document: ${error}`);
+        }
       }
     },
     Mutation: {
       async login(parent: any, args: ILogin, ctx: Context, info: any) {
-        if (args.idToken) {
+        console.log("resolvers.Mutation.login()");
+        if (args.idToken && args.idToken !== "undefined") {
           const decodedIdToken = await verifyIdToken(args.idToken);
           const { uid } = decodedIdToken;
-          if (!uid) throw new AuthError({ message: "User is not registered" });
+          if (!uid) {
+            console.error("User is not registered");
+            return {
+              success: false,
+              message: "User is not registered"
+            };
+          }
 
           const user = await getUserRecord(uid);
           const [sessionCookie, expiresIn] = await createUserSessionToken(
@@ -93,37 +117,33 @@ function configureServer() {
           const options: express.CookieOptions = {
             maxAge: expiresIn,
             httpOnly: true,
-            // TODO: set `secure: true` in production
-            secure: false
+            secure: false // TODO: set secure: true in production
           };
           ctx.res.cookie("session", sessionCookie, options);
-          return {
-            success: true,
-            user
-          };
+          return { success: true, user };
         } else {
           const sessionCookie = ctx.req.cookies.session || "";
           if (sessionCookie) {
             const decodedClaims = await verifyUserSessionToken(sessionCookie);
             const user = await getUserRecord(decodedClaims.uid);
             // TODO: check claims to ensure it's still valid / not revoked / etc.?
-            return {
-              success: true,
-              user
-            };
-          } else {
-            throw new AuthError({ message: "Invalid login request" });
+            return { success: true, user };
           }
         }
+        return {
+          success: false,
+          message: "Invalid login request"
+        };
       },
 
       async logout(parent: any, args: any, ctx: Context, info: any) {
+        console.log("resolvers.Mutation.logout()");
         const sessionCookie = ctx.req.cookies.session || "";
         if (sessionCookie) {
           ctx.res.clearCookie("session");
           if (ctx.user) {
             try {
-              await firebaseAdmin.auth().revokeRefreshTokens(ctx.user.sub);
+              await fbAdmin.auth().revokeRefreshTokens(ctx.user.sub);
               return {
                 success: true
               };
@@ -148,6 +168,7 @@ function configureServer() {
     resolvers,
 
     context: async ({ req, res }) => {
+      console.log("server.context()");
       const user = await getUser(req);
       return { req, res, user } as Context;
     },
@@ -167,6 +188,10 @@ function configureServer() {
 
   // finally return the application
   return app;
+}
+
+function authorize(ctx: Context) {
+  if (!ctx.user) ctx.res.status(401).send("UNAUTHORIZED REQUEST");
 }
 
 export default configureServer;

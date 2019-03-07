@@ -1,5 +1,5 @@
 {
-  "alias": "wnq-nextjs-apollo-demo.now.sh",
+  "alias": "nateq314.now.sh",
   "version": 2,
   "builds": [{ "src": "package.json", "use": "@now/next" }]
 }
