@@ -4,7 +4,18 @@ interface FetchBody {
   [key: string]: any;
 }
 
+function getSessionCookie(res: Response) {
+  const setCookieHeader = res.headers.get("set-cookie");
+  if (setCookieHeader) {
+    const sessionCookieMatches = setCookieHeader.match(/session=(.+?);/);
+    if (sessionCookieMatches) {
+      return sessionCookieMatches[1];
+    }
+  }
+}
+
 function doFetch(method: string, body: FetchBody) {
+  let session: string | undefined;
   return fetch(LINK_URI, {
     method,
     mode: "cors",
@@ -13,9 +24,20 @@ function doFetch(method: string, body: FetchBody) {
       "Content-Type": "application/json"
     },
     body: JSON.stringify(body)
-  }).then((response) => {
-    return response.json();
-  });
+  })
+    .then((response) => {
+      session = getSessionCookie(response);
+      return response.json();
+    })
+    .then((jsonResponse) => {
+      const modifiedJsonResponse = {
+        // append the session cookie, if any, to the response
+        ...jsonResponse,
+        session
+      };
+      console.log("response:", modifiedJsonResponse);
+      return modifiedJsonResponse;
+    });
 }
 
 export function get(body: FetchBody) {

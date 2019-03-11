@@ -13,6 +13,7 @@ import {
 
 interface ILogin {
   idToken?: string;
+  session?: string;
 }
 
 export interface Context {
@@ -39,7 +40,7 @@ function configureServer() {
     }
 
     type Mutation {
-      login(idToken: String): LoginResult!
+      login(idToken: String, session: String): LoginResult!
       logout: LoginResult!
     }
 
@@ -99,6 +100,10 @@ function configureServer() {
       async login(parent: any, args: ILogin, ctx: Context, info: any) {
         console.log("resolvers.Mutation.login()");
         if (args.idToken && args.idToken !== "undefined") {
+          // User just logged in via email/password and either
+          // 1: client is calling this in order to set a session cookie, API <-> CLIENT, or
+          // 2: SSR backend is calling this in order to fetch the user object
+          //    and set the session cookie, SSR <-> CLIENT
           const decodedIdToken = await verifyIdToken(args.idToken);
           const { uid } = decodedIdToken;
           if (!uid) {
@@ -122,7 +127,11 @@ function configureServer() {
           ctx.res.cookie("session", sessionCookie, options);
           return { success: true, user };
         } else {
-          const sessionCookie = ctx.req.cookies.session || "";
+          console.log("Attempting auto-login");
+          console.log("args:", args);
+          // User is re-visiting the site and automatically reauthenticating using the
+          // existing session cookie (SSR <-> CLIENT).
+          const sessionCookie = args.session || "";
           if (sessionCookie) {
             const decodedClaims = await verifyUserSessionToken(sessionCookie);
             const user = await getUserRecord(decodedClaims.uid);

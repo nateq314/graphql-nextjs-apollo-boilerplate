@@ -1,14 +1,17 @@
-import { verifyUserSessionToken, verifyIdToken } from "./firebase";
+import { verifyUserSessionToken } from "./firebase";
 import * as express from "express";
 
 export async function getUser(req: express.Request) {
   console.log("getUser()");
   const sessionCookie = req.cookies.session || "";
   if (sessionCookie) {
+    // This is the API <-> CLIENT cookie. Client is hitting the API.
     return verifyUserSessionToken(sessionCookie);
   } else {
-    const idToken = req.get("idToken");
-    if (idToken && idToken !== "undefined") return verifyIdToken(idToken);
+    // This is the SSR <-> CLIENT cookie, passed to the API as a header.
+    const session = req.get("session");
+    if (session && session !== "undefined")
+      return verifyUserSessionToken(session);
   }
   return null;
 }

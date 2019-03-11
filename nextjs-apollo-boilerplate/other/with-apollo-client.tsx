@@ -17,10 +17,11 @@ interface ApolloProps {
 async function autoLogin(ctx: NextContext) {
   // check for the temporary cookie. If present, extract idToken, delete cookie,
   // and set a new httpOnly one.
-  const { idToken, tempToken } = parseCookies(ctx);
+  const { session, tempToken } = parseCookies(ctx);
   // no need to delete the cookie since it only had a lifespan of < 1 min
   if (tempToken) {
     // User just logged in via email/password and page reloaded. Temporary token received.
+    // TODO: try to reproduce this. If unable to, remove.
     if (tempToken === "undefined") {
       destroyCookie(ctx, "tempToken", {});
       return {};
@@ -34,36 +35,35 @@ async function autoLogin(ctx: NextContext) {
       console.error(response.errors);
       return {};
     }
-    if (!idToken) {
-      // Set an httpOnly cookie. From now on (at least while the cookie is valid) this will
-      // be sent by the client on all requests for pages. Using this cookie, we can perform
-      // auto-login per below.
-      setCookie(ctx, "idToken", tempToken, {
-        maxAge: 5 * 24 * 60 * 60,
-        httpOnly: true,
-        // TODO: set 'secure' to true
-        secure: false
-      });
-    }
-    // return user data as props
+    const { session } = response;
     const { success, user } = response.data.login;
-    if (success) return { user, idToken: tempToken };
-  } else if (idToken) {
+    // Set an httpOnly cookie. From now on (at least while the cookie is valid) this will
+    // be sent by the client on all requests for pages. Using this cookie, we can perform
+    // auto-login per below.
+    setCookie(ctx, "session", session, {
+      maxAge: 5 * 24 * 60 * 60,
+      httpOnly: true,
+      // TODO: set 'secure' to true
+      secure: false
+    });
+    // return user data as props
+    if (success) return { user, session };
+  } else if (session) {
     // User is re-visiting the site. Get the user info. No need to set cookie as it already exists.
-    // fetch user data from API using the idToken (`login` mutation)
+    // fetch user data from API using the session (`login` mutation)
     // This also has the effect of setting the httpOnly cookie between API <-> SSR
     const response = await api.post({
       query: LOGIN.replace(/\s+/, " "),
-      variables: { idToken }
+      variables: { session }
     });
     if (response.errors) {
       console.error(response.errors);
-      destroyCookie(ctx, "idToken", {});
+      destroyCookie(ctx, "session", {});
       return {};
     }
     // return user data as props
     const { success, user } = response.data.login;
-    if (success) return { user, idToken };
+    if (success) return { user, session };
   }
   return {};
 }
@@ -91,7 +91,7 @@ export default (App: any) => {
         if (ctx.query.logout === "true") {
           // logout. Instead of sending an invalid idToken to the backend
           // only to have it return an error, just remove the cookie now
-          // and forego the whole auto-login process.
+          // and forego the whole 'attempt to auto-login' process.
           destroyCookie(ctx, "idToken", {});
           const response = (ctx as NextContext<
             Record<string, string | string[] | undefined>
@@ -103,9 +103,9 @@ export default (App: any) => {
         } else {
           const autoLoginResponse = await autoLogin(ctx);
           user = autoLoginResponse.user;
-          const { idToken } = autoLoginResponse;
+          const { session } = autoLoginResponse;
           // for the purposes of running getDataFromTree, send token as a header
-          apollo = initApollo({ currentUser: user }, { headers: { idToken } });
+          apollo = initApollo({ currentUser: user }, { headers: { session } });
           try {
             // Run all GraphQL queries
             await getDataFromTree(

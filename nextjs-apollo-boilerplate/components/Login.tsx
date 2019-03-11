@@ -18,8 +18,8 @@ interface LoginResponse {
 const StyledLogin = styled.div``;
 
 export const LOGIN = `
-  mutation Login($idToken: String) {
-    login(idToken: $idToken) {
+  mutation Login($idToken: String, $session: String) {
+    login(idToken: $idToken, session: $session) {
       success
       message
       user {
