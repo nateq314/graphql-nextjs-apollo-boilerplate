@@ -18,7 +18,7 @@ async function autoLogin(ctx: NextContext) {
   // check for the temporary cookie. If present, extract idToken, delete cookie,
   // and set a new httpOnly one.
   const { session, tempToken } = parseCookies(ctx);
-  // no need to delete the cookie since it only had a lifespan of < 1 min
+  // no need to delete the cookie since it only had a lifespan of 1 sec.
   if (tempToken) {
     // User just logged in via email/password and page reloaded. Temporary token received.
     // TODO: try to reproduce this. If unable to, remove.
@@ -31,12 +31,12 @@ async function autoLogin(ctx: NextContext) {
       query: LOGIN.replace(/\s+/, " "),
       variables: { idToken: tempToken }
     });
-    if (response.errors) {
-      console.error(response.errors);
+    const { session } = response;
+    const { error, user } = response.data.login;
+    if (error) {
+      console.error(error);
       return {};
     }
-    const { session } = response;
-    const { success, user } = response.data.login;
     // Set an httpOnly cookie. From now on (at least while the cookie is valid) this will
     // be sent by the client on all requests for pages. Using this cookie, we can perform
     // auto-login per below.
@@ -47,23 +47,20 @@ async function autoLogin(ctx: NextContext) {
       secure: false
     });
     // return user data as props
-    if (success) return { user, session };
+    return { user, session };
   } else if (session) {
     // User is re-visiting the site. Get the user info. No need to set cookie as it already exists.
     // fetch user data from API using the session (`login` mutation)
-    // This also has the effect of setting the httpOnly cookie between API <-> SSR
     const response = await api.post({
       query: LOGIN.replace(/\s+/, " "),
       variables: { session }
     });
-    if (response.errors) {
-      console.error(response.errors);
+    const { user, error } = response.data.login;
+    if (error) {
+      console.error(error);
       destroyCookie(ctx, "session", {});
       return {};
-    }
-    // return user data as props
-    const { success, user } = response.data.login;
-    if (success) return { user, session };
+    } else return { user, session };
   }
   return {};
 }
@@ -92,7 +89,7 @@ export default (App: any) => {
           // logout. Instead of sending an invalid idToken to the backend
           // only to have it return an error, just remove the cookie now
           // and forego the whole 'attempt to auto-login' process.
-          destroyCookie(ctx, "idToken", {});
+          destroyCookie(ctx, "session", {});
           const response = (ctx as NextContext<
             Record<string, string | string[] | undefined>
           >).res as http.ServerResponse;

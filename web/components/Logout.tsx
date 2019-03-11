@@ -13,8 +13,7 @@ const StyledLogout = styled.div``;
 const LOGOUT = `
   mutation {
     logout {
-      success
-      message
+      error
     }
   }
 `;
@@ -28,7 +27,8 @@ function Login({ user }: LogoutProps) {
             <button
               onClick={async () => {
                 await firebase.auth().signOut();
-                await logout();
+                const response = await logout();
+                console.log("logout response:", response);
                 location.assign(`${location.href}?logout=true`);
               }}
             >

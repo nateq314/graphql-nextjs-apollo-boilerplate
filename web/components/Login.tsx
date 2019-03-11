@@ -10,8 +10,7 @@ interface LoginProps {
 }
 
 interface LoginResponse {
-  success: boolean;
-  message?: string;
+  error?: string;
   user?: firebase.User;
 }
 
@@ -20,8 +19,7 @@ const StyledLogin = styled.div``;
 export const LOGIN = `
   mutation Login($idToken: String, $session: String) {
     login(idToken: $idToken, session: $session) {
-      success
-      message
+      error
       user {
         uid
         email
@@ -58,8 +56,10 @@ function Login({ user }: LoginProps) {
                       variables: { idToken }
                     });
                     if (response) {
-                      const { success } = response.data.login as LoginResponse;
-                      if (success) {
+                      const { error } = response.data.login as LoginResponse;
+                      if (error) {
+                        console.error(error);
+                      } else {
                         // Then we know the API cookie has been set.
                         // Set a temporary cookie (expires in 1 sec), just enough for sth to be received by the server
                         // and used for login.

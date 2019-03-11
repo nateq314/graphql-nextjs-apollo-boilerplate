@@ -7,7 +7,7 @@ export async function getUser(req: express.Request) {
     // This is the API <-> CLIENT cookie. Client is hitting the API.
     return verifyUserSessionToken(sessionCookie);
   } else {
-    // This is the SSR <-> CLIENT cookie, passed to the API as a header.
+    // This is the SSR <-> CLIENT cookie, passed on to the API as a header.
     const session = req.get("session");
     if (session && session !== "undefined")
       return verifyUserSessionToken(session);

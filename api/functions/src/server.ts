@@ -45,8 +45,7 @@ function configureServer() {
     }
 
     type LoginResult {
-      success: Boolean!
-      message: String
+      error: String
       user: User
     }
 
@@ -104,8 +103,7 @@ function configureServer() {
           if (!uid) {
             console.error("User is not registered");
             return {
-              success: false,
-              message: "User is not registered"
+              error: "User is not registered"
             };
           }
 
@@ -120,21 +118,27 @@ function configureServer() {
             secure: false // TODO: set secure: true in production
           };
           ctx.res.cookie("session", sessionCookie, options);
-          return { success: true, user };
+          return { user };
         } else {
           // User is re-visiting the site and automatically reauthenticating using the
           // existing session cookie (SSR <-> CLIENT).
           const sessionCookie = args.session || "";
           if (sessionCookie) {
-            const decodedClaims = await verifyUserSessionToken(sessionCookie);
-            const user = await getUserRecord(decodedClaims.uid);
-            // TODO: check claims to ensure it's still valid / not revoked / etc.?
-            return { success: true, user };
+            try {
+              const decodedClaims = await verifyUserSessionToken(sessionCookie);
+              const user = await getUserRecord(decodedClaims.uid);
+              return { user };
+            } catch (error) {
+              // verifyUserSessionToken() will throw if the session cookie
+              // is invalid or revoked.
+              return {
+                error: `Invalid login request: ${error}`
+              };
+            }
           }
         }
         return {
-          success: false,
-          message: "Invalid login request"
+          error: "Invalid login request"
         };
       },
 
@@ -145,20 +149,16 @@ function configureServer() {
           if (ctx.user) {
             try {
               await fbAdmin.auth().revokeRefreshTokens(ctx.user.sub);
-              return {
-                success: true
-              };
+              return {};
             } catch (error) {
               return {
-                success: false,
-                message: error
+                error
               };
             }
           }
         }
         return {
-          success: false,
-          message: "Session cookie is invalid, or no session to log out of"
+          error: "Session cookie is invalid, or no session to log out of"
         };
       }
     }
