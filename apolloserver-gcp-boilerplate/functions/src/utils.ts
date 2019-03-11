@@ -2,7 +2,6 @@ import { verifyUserSessionToken } from "./firebase";
 import * as express from "express";
 
 export async function getUser(req: express.Request) {
-  console.log("getUser()");
   const sessionCookie = req.cookies.session || "";
   if (sessionCookie) {
     // This is the API <-> CLIENT cookie. Client is hitting the API.

@@ -15,7 +15,6 @@ async function createUserSessionToken(
   args: any,
   decodedIdToken?: firebaseAdmin.auth.DecodedIdToken
 ) {
-  console.log("createUserSessionToken()");
   // Get the ID token.
   const idToken = args.idToken.toString();
   // Only process if the user just signed in in the last 5 minutes.
@@ -51,7 +50,6 @@ async function createUserSessionToken(
 async function verifyUserSessionToken(token: string) {
   // Verify session cookies tokens with firebase admin.
   // This is a low overhead operation.
-  console.log("verifyUserSessionToken()");
   try {
     const decodedClaims = await admin
       .auth()
@@ -65,18 +63,14 @@ async function verifyUserSessionToken(token: string) {
 
 // Sets properties into firebase user
 function setUserClaims(uid: string, data: any) {
-  console.log("setUserClaims()");
   return admin.auth().setCustomUserClaims(uid, data);
 }
 
 function getUserRecord(uid: string) {
-  console.log("getUserRecord()");
   return admin.auth().getUser(uid);
 }
 
 async function verifyIdToken(idToken: string) {
-  console.log("verifyIdToken()");
-  console.log("idToken:", idToken);
   try {
     const decodedIdToken = await admin.auth().verifyIdToken(idToken);
     return decodedIdToken;

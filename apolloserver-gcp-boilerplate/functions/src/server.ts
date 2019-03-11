@@ -73,22 +73,18 @@ function configureServer() {
   const resolvers = {
     Query: {
       async currentUser(parent: any, args: any, ctx: Context, info: any) {
-        console.log("resolvers.Query.currentUser()");
         return ctx.user;
       },
       async lists(parent: any, args: any, ctx: Context, info: any) {
-        console.log("resolvers.Query.lists()");
         authorize(ctx);
         const { uid } = ctx.user as fbAdmin.auth.DecodedIdToken;
         try {
-          console.log(`about to query for documents with uid == ${uid}`);
           const querySnapshot = await fbAdmin
             .firestore()
             .collection("lists")
             .where("uid", "==", uid)
             .get();
           const data = querySnapshot.docs.map((doc) => doc.data());
-          console.log("Retrieved lists:", data);
           return data;
         } catch (error) {
           console.error("Error retrieving lists:", error);
@@ -98,7 +94,6 @@ function configureServer() {
     },
     Mutation: {
       async login(parent: any, args: ILogin, ctx: Context, info: any) {
-        console.log("resolvers.Mutation.login()");
         if (args.idToken && args.idToken !== "undefined") {
           // User just logged in via email/password and either
           // 1: client is calling this in order to set a session cookie, API <-> CLIENT, or
@@ -127,8 +122,6 @@ function configureServer() {
           ctx.res.cookie("session", sessionCookie, options);
           return { success: true, user };
         } else {
-          console.log("Attempting auto-login");
-          console.log("args:", args);
           // User is re-visiting the site and automatically reauthenticating using the
           // existing session cookie (SSR <-> CLIENT).
           const sessionCookie = args.session || "";
@@ -146,7 +139,6 @@ function configureServer() {
       },
 
       async logout(parent: any, args: any, ctx: Context, info: any) {
-        console.log("resolvers.Mutation.logout()");
         const sessionCookie = ctx.req.cookies.session || "";
         if (sessionCookie) {
           ctx.res.clearCookie("session");
@@ -177,7 +169,6 @@ function configureServer() {
     resolvers,
 
     context: async ({ req, res }) => {
-      console.log("server.context()");
       const user = await getUser(req);
       return { req, res, user } as Context;
     },
