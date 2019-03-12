@@ -169,6 +169,10 @@ function configureServer() {
     resolvers,
 
     context: async ({ req, res }) => {
+      // console.log("req:", req);
+      // console.log("req.body:", req.body);
+      // console.log("req.headers:", req.headers);
+      // console.log("req.cookies:", req.cookies);
       const user = await getUser(req);
       return { req, res, user } as Context;
     },

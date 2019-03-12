@@ -111,6 +111,7 @@ export default (App: any) => {
                 Component={Component}
                 router={router}
                 apolloClient={apollo}
+                user={user}
               />
             );
           } catch (error) {
@@ -133,7 +134,8 @@ export default (App: any) => {
 
       return {
         ...appProps,
-        apolloState
+        apolloState,
+        user
       };
     }
 
