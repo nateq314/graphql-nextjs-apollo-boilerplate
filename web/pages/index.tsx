@@ -11,8 +11,13 @@ const StyledHome = styled.div``;
 const LISTS_QUERY = gql`
   query {
     lists {
+      id
       name
       order
+      todos {
+        id
+        content
+      }
     }
   }
 `;

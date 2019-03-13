@@ -29,11 +29,13 @@ function doFetch(method: string, body: FetchBody) {
       session = getSessionCookie(response);
       return response.json();
     })
-    .then((jsonResponse) => ({
-      // append the session cookie, if any, to the response
-      ...jsonResponse,
-      session
-    }));
+    .then((jsonResponse) => {
+      jsonResponse = {
+        ...jsonResponse,
+        session
+      };
+      return jsonResponse;
+    });
 }
 
 export function get(body: FetchBody) {

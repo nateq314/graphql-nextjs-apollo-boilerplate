@@ -102,7 +102,7 @@ export default (App: any) => {
           user = autoLoginResponse.user;
           const { session } = autoLoginResponse;
           // for the purposes of running getDataFromTree, send token as a header
-          apollo = initApollo({ currentUser: user }, { headers: { session } });
+          apollo = initApollo({}, { headers: { session } });
           try {
             // Run all GraphQL queries
             await getDataFromTree(

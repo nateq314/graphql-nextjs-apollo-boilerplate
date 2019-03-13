@@ -22,6 +22,21 @@ export interface Context {
   user: fbAdmin.auth.DecodedIdToken | null;
 }
 
+interface List {
+  id: string;
+  name: string;
+  order: number;
+}
+
+interface Todo {
+  id: string;
+  completed: boolean;
+  content: string;
+  deadline?: number;
+  important: boolean;
+  order: number;
+}
+
 function configureServer() {
   const app = express();
   app.use(
@@ -35,8 +50,10 @@ function configureServer() {
   // Simple graphql schema
   const typeDefs = gql`
     type List {
+      id: ID!
       name: String!
       order: Int!
+      todos: [Todo]!
     }
 
     type Mutation {
@@ -52,6 +69,15 @@ function configureServer() {
     type Query {
       currentUser: User
       lists: [List!]!
+    }
+
+    type Todo {
+      id: ID!
+      completed: Boolean!
+      content: String!
+      deadline: Int
+      important: Boolean!
+      order: Int!
     }
 
     type User {
@@ -83,12 +109,41 @@ function configureServer() {
             .collection("lists")
             .where("uid", "==", uid)
             .get();
-          const data = querySnapshot.docs.map((doc) => doc.data());
-          return data;
+          return querySnapshot.docs.map(
+            // (doc) =>
+            //   ({
+            //     ...doc.data(),
+            //     id: doc.id
+            //   } as List)
+            (doc) => {
+              const data = {
+                ...doc.data(),
+                id: doc.id
+              } as List;
+              return data;
+            }
+          );
         } catch (error) {
           console.error("Error retrieving lists:", error);
           throw new ApolloError(`Error getting document: ${error}`);
         }
+      }
+    },
+    List: {
+      async todos(list: List) {
+        const querySnapshot = await fbAdmin
+          .firestore()
+          .collection("lists")
+          .doc(list.id)
+          .collection("todos")
+          .get();
+        return querySnapshot.docs.map(
+          (doc) =>
+            ({
+              ...doc.data(),
+              id: doc.id
+            } as Todo)
+        );
       }
     },
     Mutation: {
@@ -169,7 +224,6 @@ function configureServer() {
     resolvers,
 
     context: async ({ req, res }) => {
-      // console.log("req:", req);
       // console.log("req.body:", req.body);
       // console.log("req.headers:", req.headers);
       // console.log("req.cookies:", req.cookies);

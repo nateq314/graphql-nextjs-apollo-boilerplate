@@ -26,7 +26,10 @@ export default class MyDocument extends Document<DocumentProps> {
   render() {
     return (
       <html>
-        <Head>{this.props.styleTags}</Head>
+        <Head>
+          <link rel="icon" href="/static/favicon.ico" key="favicon" />
+          {this.props.styleTags}
+        </Head>
         <body>
           <Main />
           <NextScript />
