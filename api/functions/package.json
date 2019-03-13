@@ -14,6 +14,7 @@
     "node": "8"
   },
   "dependencies": {
+    "@axelspringer/graphql-google-pubsub": "^1.2.0",
     "apollo-server-express": "^2.4.4",
     "cookie-parser": "^1.4.4",
     "cors": "^2.8.5",

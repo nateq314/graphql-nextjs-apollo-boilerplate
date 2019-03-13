@@ -31,4 +31,4 @@
 .vscode
 
 # credentials
-credentials.json
+*credentials.json
