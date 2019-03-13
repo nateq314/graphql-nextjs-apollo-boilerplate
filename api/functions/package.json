@@ -20,7 +20,8 @@
     "express": "^4.16.4",
     "firebase": "^5.8.3",
     "firebase-admin": "^7.0.0",
-    "firebase-functions": "^2.2.0"
+    "firebase-functions": "^2.2.0",
+    "graphql": "^14.1.1"
   },
   "devDependencies": {
     "@types/cookie-parser": "^1.4.1",
