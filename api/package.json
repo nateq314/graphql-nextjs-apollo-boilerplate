@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "main": "index.js",
   "license": "MIT",
+  "scripts": {
+    "dev": "ts-node src/server.ts"
+  },
   "dependencies": {
     "@axelspringer/graphql-google-pubsub": "^1.2.0",
     "apollo-server": "^2.4.8",
@@ -14,6 +17,7 @@
     "graphql-tools": "^4.0.4"
   },
   "devDependencies": {
+    "ts-node": "^8.0.3",
     "tslint": "^5.14.0",
     "typescript": "^3.3.3333"
   }

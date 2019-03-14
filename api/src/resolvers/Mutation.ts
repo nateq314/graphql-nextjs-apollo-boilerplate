@@ -15,10 +15,14 @@ interface ILogin {
 }
 
 export default {
+  foo() {
+    pubsub.publish(SOMETHING_CHANGED_TOPIC, { message: "hello" });
+    return {
+      message: "hello"
+    };
+  },
+
   async login(parent: any, args: ILogin, ctx: Context, info: any) {
-    pubsub.publish(SOMETHING_CHANGED_TOPIC, {
-      somethingChanged: { id: "123", message: "login attempted" }
-    });
     if (args.idToken && args.idToken !== "undefined") {
       // User just logged in via email/password and either
       // 1: client is calling this in order to set a session cookie, API <-> CLIENT, or

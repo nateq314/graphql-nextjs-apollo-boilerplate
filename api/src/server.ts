@@ -1,6 +1,8 @@
 import * as express from "express";
-import { createServer } from "http";
+import { createServer } from "https";
 import { ApolloServer } from "apollo-server-express";
+import * as path from "path";
+import * as fs from "fs";
 
 import typeDefs from "./schema";
 import resolvers from "./resolvers";
@@ -16,10 +18,18 @@ const apolloServer = new ApolloServer({
 
 apolloServer.applyMiddleware({ app });
 
-const httpServer = createServer(app);
-apolloServer.installSubscriptionHandlers(httpServer);
+const httpsServer = createServer(
+  {
+    // key: fs.readFileSync(`../certs/localhost.key`),
+    key: fs.readFileSync(path.join(process.cwd(), "certs", "localhost.key")),
+    // cert: fs.readFileSync(`../certs/localhost.crt`)
+    cert: fs.readFileSync(path.join(process.cwd(), "certs", "localhost.crt"))
+  },
+  app
+);
+apolloServer.installSubscriptionHandlers(httpsServer);
 
-httpServer.listen({ port: PORT }, () => {
+httpsServer.listen({ port: PORT }, () => {
   console.log(
     `🚀 Subscriptions ready at ws://localhost:${PORT}${
       apolloServer.subscriptionsPath

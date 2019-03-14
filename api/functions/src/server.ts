@@ -1,14 +1,7 @@
 import * as cors from "cors";
 import * as express from "express";
 import * as cookieParser from "cookie-parser";
-import * as fbAdmin from "firebase-admin";
 import apolloServer from "./apolloServer";
-
-export interface Context {
-  req: express.Request;
-  res: express.Response;
-  user: fbAdmin.auth.DecodedIdToken | null;
-}
 
 function configureServer() {
   const app = express();

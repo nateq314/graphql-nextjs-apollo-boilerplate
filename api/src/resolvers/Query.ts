@@ -1,6 +1,6 @@
 import * as fbAdmin from "firebase-admin";
 import { ApolloError } from "apollo-server-express";
-import { Context } from "../server";
+import { Context } from "../apolloServer";
 import { List } from "../schema";
 
 export default {

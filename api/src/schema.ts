@@ -24,6 +24,7 @@ const schema = gql`
   }
 
   type Mutation {
+    foo: Result
     login(idToken: String, session: String): LoginResult!
     logout: LoginResult!
   }
@@ -39,7 +40,6 @@ const schema = gql`
   }
 
   type Result {
-    id: String
     message: String
   }
 

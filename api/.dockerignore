@@ -1,0 +1,14 @@
+# Note that git-related stuff is not included here. The kind of setup
+# we're going for is a completely portable dev environment that includes
+# everything needed for regular development. Version control ought
+# to be a part of that.
+
+Dockerfile*
+.dockerignore
+node_modules/
+build
+dist
+.next
+.DS_Store
+
+functions
