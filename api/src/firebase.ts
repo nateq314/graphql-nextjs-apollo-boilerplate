@@ -26,8 +26,12 @@ async function createUserSessionToken(
   if (!(new Date().getTime() / 1000 - decodedIdToken.auth_time < 5 * 60))
     throw new AuthError({ message: "Recent sign-in required!" });
 
-  // Set session expiration to 5 days.
-  const expiresIn = 60 * 60 * 24 * 5 * 1000;
+  // Set session expiration to 14 days.
+  const days = 13;
+  console.log(
+    "about to create session token that will expire in " + days + " days"
+  );
+  const expiresIn = 60 * 60 * 24 * days * 1000;
 
   // Create the session cookie. This will also verify the ID token in the process.
   // The session cookie will have the same claims as the ID token.
