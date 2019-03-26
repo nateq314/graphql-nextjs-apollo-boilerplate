@@ -5,9 +5,14 @@ import withApolloClient from "../other/with-apollo-client";
 import { ApolloClient, NormalizedCacheObject } from "apollo-boost";
 import GlobalStyles from "../components/GlobalStyles";
 
+export interface StoredUserData {
+  email: string;
+  uid: string;
+  // actually a lot more than this but for now this is all we want to deal with
+}
+
 interface MyAppProps extends AppProps {
   apolloClient: ApolloClient<NormalizedCacheObject>;
-  user: firebase.User | undefined;
 }
 
 class MyApp extends App<MyAppProps> {
@@ -17,7 +22,7 @@ class MyApp extends App<MyAppProps> {
       <Container>
         <GlobalStyles />
         <ApolloProvider client={apolloClient}>
-          <Component {...pageProps} user={this.props.user} />
+          <Component {...pageProps} />
         </ApolloProvider>
       </Container>
     );

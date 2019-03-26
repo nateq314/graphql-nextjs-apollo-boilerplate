@@ -5,10 +5,6 @@ import { Mutation } from "react-apollo";
 import gql from "graphql-tag";
 import * as Cookies from "cookies-js";
 
-interface LoginProps {
-  user?: firebase.User;
-}
-
 interface LoginResponse {
   error?: string;
   user?: firebase.User;
@@ -28,7 +24,7 @@ export const LOGIN = `
   }
 `;
 
-function Login({ user }: LoginProps) {
+function Login() {
   const email = useRef<HTMLInputElement>(null);
   const password = useRef<HTMLInputElement>(null);
 
@@ -37,50 +33,50 @@ function Login({ user }: LoginProps) {
       {(login) => {
         return (
           <StyledLogin>
-            {user ? null : (
-              <form
-                onSubmit={async (e) => {
-                  e.preventDefault();
-                  const {
-                    user
-                  } = await firebase
-                    .auth()
-                    .signInWithEmailAndPassword(
-                      (email.current as HTMLInputElement).value,
-                      (password.current as HTMLInputElement).value
-                    );
-                  if (user) {
-                    const idToken = await user.getIdToken();
-                    // Only purpose of this call is to set the session cookie, not to get the user object
-                    const response = await login({
-                      variables: { idToken }
-                    });
-                    if (response) {
-                      const { error } = response.data.login as LoginResponse;
-                      if (error) {
-                        console.error(error);
-                      } else {
-                        // Then we know the API cookie has been set.
-                        // Set a temporary cookie (expires in 1 sec), just enough for sth to be received by the server
-                        // and used for login.
-                        // TODO: look into other options ('secure', 'domain', etc.), see if any are applicable
-                        Cookies.set("tempToken", idToken, { expires: 1 });
-                        // * Redirect to this page (login) with said cookie
-                        location.assign("/");
-                      }
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                const {
+                  user
+                } = await firebase
+                  .auth()
+                  .signInWithEmailAndPassword(
+                    (email.current as HTMLInputElement).value,
+                    (password.current as HTMLInputElement).value
+                  );
+                // TODO: is login fail handled correctly here?
+                if (user) {
+                  const idToken = await user.getIdToken();
+                  // Only purpose of this call is to set the session cookie, not to get the user object
+                  const response = await login({
+                    variables: { idToken }
+                  });
+                  if (response) {
+                    const { error } = response.data.login as LoginResponse;
+                    if (error) {
+                      console.error(error);
+                    } else {
+                      const { user } = response as any;
+                      // Then we know the API cookie has been set.
+                      // Set a temporary cookie (expires in 1 sec), just enough for sth to be received by the server
+                      // and used for login.
+                      // TODO: look into other options ('secure', 'domain', etc.), see if any are applicable
+                      Cookies.set("tempToken", idToken, { expires: 1 });
+                      // * Redirect to this page (login) with said cookie
+                      location.assign("/");
                     }
                   }
-                }}
-              >
-                <div>
-                  <input id="email" ref={email} />
-                </div>
-                <div>
-                  <input type="password" id="password" ref={password} />
-                </div>
-                <button type="submit">Log In</button>
-              </form>
-            )}
+                }
+              }}
+            >
+              <div>
+                <input id="email" ref={email} />
+              </div>
+              <div>
+                <input type="password" id="password" ref={password} />
+              </div>
+              <button type="submit">Log In</button>
+            </form>
           </StyledLogin>
         );
       }}

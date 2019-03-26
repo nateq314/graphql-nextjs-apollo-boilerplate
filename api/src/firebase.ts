@@ -27,10 +27,7 @@ async function createUserSessionToken(
     throw new AuthError({ message: "Recent sign-in required!" });
 
   // Set session expiration to 14 days.
-  const days = 13;
-  console.log(
-    "about to create session token that will expire in " + days + " days"
-  );
+  const days = 14;
   const expiresIn = 60 * 60 * 24 * days * 1000;
 
   // Create the session cookie. This will also verify the ID token in the process.

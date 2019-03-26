@@ -16,7 +16,13 @@ const apolloServer = new ApolloServer({
   resolvers,
 
   context: async ({ req, res }) => {
-    const user = await getUser(req);
+    let user = await getUser(req);
+    if (user) {
+      user = {
+        ...user,
+        id: user.uid
+      };
+    }
     return { req, res, user } as Context;
   },
 

@@ -9,6 +9,8 @@ import { parseCookies, setCookie, destroyCookie } from "nookies";
 import * as api from "./api";
 import { LOGIN } from "../components/Login";
 import * as http from "http";
+import { FETCH_CURRENT_USER } from "./queries";
+import { StoredUserData } from "../pages/_app";
 
 interface ApolloProps {
   apolloState: NormalizedCacheObject;
@@ -41,7 +43,7 @@ async function autoLogin(ctx: NextContext) {
     // be sent by the client on all requests for pages. Using this cookie, we can perform
     // auto-login per below.
     setCookie(ctx, "session", session, {
-      maxAge: 5 * 24 * 60 * 60,
+      maxAge: 14 * 24 * 60 * 60,
       httpOnly: true,
       // TODO: set 'secure' to true
       secure: false
@@ -82,7 +84,7 @@ export default (App: any) => {
       // Run all GraphQL queries in the component tree
       // and extract the resulting data
       let apollo: ApolloClient<NormalizedCacheObject> | undefined;
-      let user: firebase.User | undefined;
+      let user: StoredUserData | undefined;
       if (typeof window === "undefined") {
         // SERVER SIDE
         if (ctx.query.logout === "true") {
@@ -111,9 +113,20 @@ export default (App: any) => {
                 Component={Component}
                 router={router}
                 apolloClient={apollo}
-                user={user}
               />
             );
+            apollo.writeQuery({
+              query: FETCH_CURRENT_USER,
+              data: {
+                current_user: user
+                  ? {
+                      ...user,
+                      id: user.uid,
+                      __typename: "User"
+                    }
+                  : null
+              }
+            });
           } catch (error) {
             // Prevent Apollo Client GraphQL errors from crashing SSR.
             // Handle them in components via the data.error prop:
@@ -129,13 +142,14 @@ export default (App: any) => {
       }
 
       // Extract query data from the Apollo store
+      // On the client side, initApollo() below will return the SAME Apollo
+      // Client object over repeated calls, to preserve state.
       if (!apollo) apollo = initApollo();
       const apolloState = apollo.cache.extract();
 
       return {
         ...appProps,
-        apolloState,
-        user
+        apolloState
       };
     }
 

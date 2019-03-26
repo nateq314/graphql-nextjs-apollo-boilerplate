@@ -35,7 +35,7 @@ const schema = gql`
   }
 
   type Query {
-    currentUser: User
+    current_user: User
     lists: [List!]!
   }
 
@@ -57,7 +57,8 @@ const schema = gql`
   }
 
   type User {
-    uid: ID!
+    id: ID!
+    uid: String!
     email: String!
     emailVerified: Boolean!
     displayName: String

@@ -1,55 +1,35 @@
 import React from "react";
 import styled from "styled-components";
-import Link from "next/link";
 import { Query } from "react-apollo";
-import gql from "graphql-tag";
 import Login from "../components/Login";
-import Logout from "../components/Logout";
+import AppBar from "../components/AppBar";
+import { FETCH_CURRENT_USER, LISTS_QUERY } from "../other/queries";
 
 const StyledHome = styled.div``;
 
-const LISTS_QUERY = gql`
-  query {
-    lists {
-      id
-      name
-      order
-      todos {
-        id
-        content
-      }
-    }
-  }
-`;
-
-interface HomeProps {
-  user?: firebase.User;
-}
-
-function Home(props: HomeProps) {
+function Home() {
   return (
-    <StyledHome>
-      <h1>Welcome{props.user ? `, ${props.user.email}` : ""}</h1>
-      <h2>
-        <Link href="/about">
-          <a>About Us</a>
-        </Link>
-      </h2>
-      {props.user ? (
-        <>
-          <Query query={LISTS_QUERY}>
-            {({ loading, error, data }) => {
-              if (loading) return "Loading...";
-              if (error) return `Error! ${error.message}`;
-              return JSON.stringify(data.lists);
-            }}
-          </Query>
-          <Logout user={props.user} />
-        </>
-      ) : (
-        <Login user={props.user} />
-      )}
-    </StyledHome>
+    <Query query={FETCH_CURRENT_USER}>
+      {({ data }) => {
+        const user = data ? data.current_user : null;
+        return (
+          <StyledHome>
+            <AppBar />
+            {user ? (
+              <Query query={LISTS_QUERY}>
+                {({ loading, error, data }) => {
+                  if (loading) return "Loading...";
+                  if (error) return `Error! ${error.message}`;
+                  return JSON.stringify(data.lists);
+                }}
+              </Query>
+            ) : (
+              <Login />
+            )}
+          </StyledHome>
+        );
+      }}
+    </Query>
   );
 }
 

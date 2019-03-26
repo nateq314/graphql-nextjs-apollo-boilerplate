@@ -4,7 +4,7 @@ import { Context } from "../apolloServer";
 import { List } from "../schema";
 
 export default {
-  async currentUser(parent: any, args: any, ctx: Context, info: any) {
+  async current_user(parent: any, args: any, ctx: Context, info: any) {
     return ctx.user;
   },
   async lists(parent: any, args: any, ctx: Context, info: any) {
