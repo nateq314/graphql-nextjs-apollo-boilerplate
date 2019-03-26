@@ -24,6 +24,10 @@ export const LOGIN = `
   }
 `;
 
+/**
+ * <Login /> intentionally does not handle the case of no user object.
+ * So it should only ever be rendered in the context of no user.
+ */
 function Login() {
   const email = useRef<HTMLInputElement>(null);
   const password = useRef<HTMLInputElement>(null);

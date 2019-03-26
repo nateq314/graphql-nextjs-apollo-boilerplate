@@ -1,9 +1,10 @@
 import * as React from "react";
 import App, { Container, AppProps } from "next/app";
-import { ApolloProvider } from "react-apollo";
+import { ApolloProvider, Query } from "react-apollo";
 import withApolloClient from "../other/with-apollo-client";
 import { ApolloClient, NormalizedCacheObject } from "apollo-boost";
 import GlobalStyles from "../components/GlobalStyles";
+import { FETCH_CURRENT_USER } from "../other/queries";
 
 export interface StoredUserData {
   email: string;
@@ -15,6 +16,14 @@ interface MyAppProps extends AppProps {
   apolloClient: ApolloClient<NormalizedCacheObject>;
 }
 
+/**
+ * Yes the user object is stored in Apollo state but we don't want to have to
+ * use <Query query={FETCH_CURRENT_USER}></Query> plus render props for
+ * EVERY component that needs access to it. So we only do that once here, near
+ * the top, then put the user object in React Context for ease of access.
+ */
+export const UserContext = React.createContext<StoredUserData | null>(null);
+
 class MyApp extends App<MyAppProps> {
   render() {
     const { Component, pageProps, apolloClient } = this.props;
@@ -22,7 +31,16 @@ class MyApp extends App<MyAppProps> {
       <Container>
         <GlobalStyles />
         <ApolloProvider client={apolloClient}>
-          <Component {...pageProps} />
+          <Query query={FETCH_CURRENT_USER}>
+            {({ data }) => {
+              const user = data ? data.current_user : null;
+              return (
+                <UserContext.Provider value={user}>
+                  <Component {...pageProps} />
+                </UserContext.Provider>
+              );
+            }}
+          </Query>
         </ApolloProvider>
       </Container>
     );
