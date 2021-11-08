@@ -8,7 +8,7 @@
   },
   "dependencies": {
     "@axelspringer/graphql-google-pubsub": "^1.2.0",
-    "apollo-server": "^2.4.8",
+    "apollo-server": "^2.25.3",
     "apollo-server-express": "^2.4.8",
     "express": "^4.16.4",
     "firebase": "^5.8.6",
