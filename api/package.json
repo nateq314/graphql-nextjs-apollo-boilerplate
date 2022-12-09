@@ -10,7 +10,7 @@
     "@axelspringer/graphql-google-pubsub": "^1.2.0",
     "apollo-server": "^2.4.8",
     "apollo-server-express": "^2.4.8",
-    "express": "^4.16.4",
+    "express": "^4.17.3",
     "firebase": "^5.8.6",
     "firebase-admin": "^7.0.0",
     "graphql": "^14.1.1",
